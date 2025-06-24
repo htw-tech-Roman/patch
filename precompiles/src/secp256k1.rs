@@ -3,9 +3,10 @@ use {
     digest::Digest,
     solana_precompile_error::PrecompileError,
     solana_secp256k1_program::{
-        construct_eth_pubkey, SecpSignatureOffsets, HASHED_PUBKEY_SERIALIZED_SIZE,
+        eth_address_from_pubkey, SecpSignatureOffsets, HASHED_PUBKEY_SERIALIZED_SIZE,
         SIGNATURE_OFFSETS_SERIALIZED_SIZE, SIGNATURE_SERIALIZED_SIZE,
     },
+    std::convert::TryInto,
 };
 
 /// Verifies the signatures specified in the secp256k1 instruction data.
@@ -97,7 +98,9 @@ pub fn verify(
             &recovery_id,
         )
         .map_err(|_| PrecompileError::InvalidSignature)?;
-        let eth_address = construct_eth_pubkey(&pubkey);
+        let serialized = pubkey.serialize();
+        let eth_pubkey_bytes: &[u8; 64] = (&serialized[1..]).try_into().expect("pubkey length");
+        let eth_address = eth_address_from_pubkey(eth_pubkey_bytes);
 
         if eth_address_slice != eth_address {
             return Err(PrecompileError::InvalidSignature);
@@ -334,7 +337,9 @@ pub mod tests {
 
         let secret_key = libsecp256k1::SecretKey::random(&mut thread_rng());
         let public_key = libsecp256k1::PublicKey::from_secret_key(&secret_key);
-        let eth_address = construct_eth_pubkey(&public_key);
+        let serialized = public_key.serialize();
+        let eth_pubkey_bytes: &[u8; 64] = (&serialized[1..]).try_into().expect("pubkey length");
+        let eth_address = eth_address_from_pubkey(eth_pubkey_bytes);
 
         let message = b"hello";
         let message_hash = {

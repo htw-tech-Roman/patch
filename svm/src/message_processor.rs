@@ -97,6 +97,7 @@ pub(crate) fn process_message(
 }
 
 #[cfg(test)]
+#[allow(deprecated)]
 mod tests {
     use {
         super::*,
