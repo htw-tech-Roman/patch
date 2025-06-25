@@ -92,7 +92,7 @@ optional = true
 version = "2.2.1"
 
 [dependencies.solana-decode-error]
-version = "2.2.1"
+version = "2.3.0"
 
 [dependencies.solana-frozen-abi]
 version = "2.2.1"
